@@ -1,2 +1,2 @@
-pub mod types;
-pub mod zk;
+pub mod util;
+pub mod crypto;
