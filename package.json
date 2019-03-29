@@ -1,0 +1,24 @@
+{
+    "name": "wasm-vreath",
+    "version": "0.0.1",
+    "description": "Vreath bring cryptocurrency to everyone",
+    "main": "./js_export/rust_vreath_core.js",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Vreath-core/rust-vreath-core.git"
+    },
+    "keywords": [
+      "blockchain",
+      "cryptocurrency",
+      "vreath"
+    ],
+    "author": "Sora Suegami",
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/Vreath-core/rust-vreath-core/issues"
+    },
+    "homepage": "https://github.com/Vreath-core/rust-vreath-core#readme",
+    "devDependencies": {
+      "typescript": "^2.8.1"
+    }
+  }
