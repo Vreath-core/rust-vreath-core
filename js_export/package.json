@@ -1,0 +1,15 @@
+{
+  "name": "rust_vreath_core",
+  "collaborators": [
+    "Sora Suegami"
+  ],
+  "version": "0.0.0",
+  "files": [
+    "rust_vreath_core_bg.wasm",
+    "rust_vreath_core.js",
+    "rust_vreath_core_bg.js",
+    "rust_vreath_core.d.ts"
+  ],
+  "main": "rust_vreath_core.js",
+  "types": "rust_vreath_core.d.ts"
+}

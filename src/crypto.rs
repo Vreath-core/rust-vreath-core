@@ -3,7 +3,7 @@ use secp256k1::{Secp256k1,key,Signature,RecoverableSignature,RecoveryId,Message}
 use secp256k1::ecdh::SharedSecret;
 use sha2::{Sha256,Digest};
 extern crate rand;
-use rand::{OsRng, Rng};
+use rand::Rng;
 
 use super::util;
 
