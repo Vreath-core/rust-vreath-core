@@ -1,4 +1,4 @@
-import * as wasm from './rust_vreath_core_bg';
+var wasm;
 
 let cachegetUint8Memory = null;
 function getUint8Memory() {
@@ -16,6 +16,8 @@ function passArray8ToWasm(arg) {
     WASM_VECTOR_LEN = arg.length;
     return ptr;
 }
+
+const TextDecoder = require('util').TextDecoder;
 
 let cachedTextDecoder = new TextDecoder('utf-8');
 
@@ -42,7 +44,7 @@ function getUint32Memory() {
 * @param {Uint8Array} data
 * @returns {string}
 */
-export function wasm_get_sha256(data) {
+module.exports.wasm_get_sha256 = function(data) {
     const ptr0 = passArray8ToWasm(data);
     const len0 = WASM_VECTOR_LEN;
     const retptr = globalArgumentPtr();
@@ -62,12 +64,12 @@ export function wasm_get_sha256(data) {
 
     }
 
-}
+};
 
 /**
 * @returns {string}
 */
-export function wasm_generate_key() {
+module.exports.wasm_generate_key = function() {
     const retptr = globalArgumentPtr();
     wasm.wasm_generate_key(retptr);
     const mem = getUint32Memory();
@@ -78,13 +80,13 @@ export function wasm_generate_key() {
     wasm.__wbindgen_free(rustptr, rustlen * 1);
     return realRet;
 
-}
+};
 
 /**
 * @param {Uint8Array} private_key
 * @returns {string}
 */
-export function wasm_private2public(private_key) {
+module.exports.wasm_private2public = function(private_key) {
     const ptr0 = passArray8ToWasm(private_key);
     const len0 = WASM_VECTOR_LEN;
     const retptr = globalArgumentPtr();
@@ -104,14 +106,14 @@ export function wasm_private2public(private_key) {
 
     }
 
-}
+};
 
 /**
 * @param {Uint8Array} private_key
 * @param {Uint8Array} public_key
 * @returns {string}
 */
-export function wasm_get_shared_secret(private_key, public_key) {
+module.exports.wasm_get_shared_secret = function(private_key, public_key) {
     const ptr0 = passArray8ToWasm(private_key);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm(public_key);
@@ -134,14 +136,14 @@ export function wasm_get_shared_secret(private_key, public_key) {
 
     }
 
-}
+};
 
 /**
 * @param {Uint8Array} private_key
 * @param {Uint8Array} data
 * @returns {string}
 */
-export function wasm_recoverable_sign(private_key, data) {
+module.exports.wasm_recoverable_sign = function(private_key, data) {
     const ptr0 = passArray8ToWasm(private_key);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm(data);
@@ -164,7 +166,7 @@ export function wasm_recoverable_sign(private_key, data) {
 
     }
 
-}
+};
 
 /**
 * @param {Uint8Array} data
@@ -172,7 +174,7 @@ export function wasm_recoverable_sign(private_key, data) {
 * @param {number} recover_id
 * @returns {string}
 */
-export function wasm_recover_public_key(data, sign, recover_id) {
+module.exports.wasm_recover_public_key = function(data, sign, recover_id) {
     const ptr0 = passArray8ToWasm(data);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm(sign);
@@ -195,7 +197,7 @@ export function wasm_recover_public_key(data, sign, recover_id) {
 
     }
 
-}
+};
 
 /**
 * @param {Uint8Array} data
@@ -203,7 +205,7 @@ export function wasm_recover_public_key(data, sign, recover_id) {
 * @param {Uint8Array} public_key
 * @returns {boolean}
 */
-export function wasm_verify_sign(data, sign, public_key) {
+module.exports.wasm_verify_sign = function(data, sign, public_key) {
     const ptr0 = passArray8ToWasm(data);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm(sign);
@@ -220,7 +222,7 @@ export function wasm_verify_sign(data, sign, public_key) {
 
     }
 
-}
+};
 
 const heap = new Array(32);
 
@@ -236,5 +238,7 @@ function dropObject(idx) {
     heap_next = idx;
 }
 
-export function __wbindgen_object_drop_ref(i) { dropObject(i); }
+module.exports.__wbindgen_object_drop_ref = function(i) { dropObject(i); };
+
+wasm = require('./rust_vreath_core_bg');
 
