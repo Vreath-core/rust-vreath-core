@@ -2,8 +2,6 @@ extern crate  secp256k1;
 use secp256k1::{Secp256k1,key,Signature,RecoverableSignature,RecoveryId,Message};
 use secp256k1::ecdh::SharedSecret;
 use sha2::{Sha256,Digest};
-extern crate rand;
-use rand::Rng;
 
 use super::util;
 
@@ -22,15 +20,12 @@ pub fn get_sha256(data:&[u8])->[u8;32]{
     array.clone()
 }
 
-pub fn generate_key()->[u8;32]{
-    let secp = Secp256k1::new();
-    let mut rng = rand::thread_rng();
-    let rng_slice:[u8;32] = rng.gen();
-    let secret = key::SecretKey::from_slice(&rng_slice).unwrap();
+pub fn generate_key(random:&[u8;32])->[u8;32]{
+    let secret = key::SecretKey::from_slice(random).unwrap();
     let mut return_slice:[u8;32] = [0;32];
-    for i in (0..32){
+    (0..32).for_each(|i|{
         return_slice[i] = secret[i];
-    }
+    });
     return_slice.clone()
 }
 
@@ -46,9 +41,9 @@ pub fn get_shared_secret(private_key:&[u8;32],public_key:&[u8;32])->[u8;32]{
     let public = key::PublicKey::from_slice(public_key).unwrap();
     let shared_secret = SharedSecret::new(&public,&secret);
     let mut return_slice:[u8;32] = [0;32];
-    for i in (0..32){
+    (0..32).for_each(|i|{
         return_slice[i] = shared_secret[i];
-    }
+    });
     return_slice.clone()
 }
 /*
@@ -112,15 +107,12 @@ pub fn wasm_get_sha256(data:&[u8])->String{
 }
 
 #[wasm_bindgen]
-pub fn wasm_generate_key()->String{
-    let secp = Secp256k1::new();
-    let mut rng = rand::thread_rng();
-    let rng_slice:[u8;32] = rng.gen();
-    let secret = key::SecretKey::from_slice(&rng_slice).unwrap();
+pub fn wasm_generate_key(random:&[u8;32])->String{
+    let secret = key::SecretKey::from_slice(random).unwrap();
     let mut return_slice:[u8;32] = [0;32];
-    for i in (0..32){
+    (0..32).for_each(|i|{
         return_slice[i] = secret[i];
-    }
+    });
     util::vec2hex(return_slice.to_vec())
 }
 
@@ -138,9 +130,9 @@ pub fn wasm_get_shared_secret(private_key:&[u8],public_key:&[u8])->String{
     let public = key::PublicKey::from_slice(public_key).unwrap();
     let shared_secret = SharedSecret::new(&public,&secret);
     let mut return_slice:[u8;32] = [0;32];
-    for i in (0..32){
+    (0..32).for_each(|i|{
         return_slice[i] = shared_secret[i];
-    }
+    });
     util::vec2hex(return_slice.to_vec())
 }
 /*
