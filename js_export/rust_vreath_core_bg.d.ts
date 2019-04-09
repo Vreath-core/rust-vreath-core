@@ -1,7 +1,7 @@
 /* tslint:disable */
 export const memory: WebAssembly.Memory;
 export function wasm_get_sha256(a: number, b: number, c: number): void;
-export function wasm_generate_key(a: number): void;
+export function wasm_generate_key(a: number, b: number, c: number): void;
 export function wasm_private2public(a: number, b: number, c: number): void;
 export function wasm_get_shared_secret(a: number, b: number, c: number, d: number, e: number): void;
 export function wasm_recoverable_sign(a: number, b: number, c: number, d: number, e: number): void;

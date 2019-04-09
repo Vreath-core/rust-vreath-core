@@ -67,18 +67,28 @@ module.exports.wasm_get_sha256 = function(data) {
 };
 
 /**
+* @param {Uint8Array} random
 * @returns {string}
 */
-module.exports.wasm_generate_key = function() {
+module.exports.wasm_generate_key = function(random) {
+    const ptr0 = passArray8ToWasm(random);
+    const len0 = WASM_VECTOR_LEN;
     const retptr = globalArgumentPtr();
-    wasm.wasm_generate_key(retptr);
-    const mem = getUint32Memory();
-    const rustptr = mem[retptr / 4];
-    const rustlen = mem[retptr / 4 + 1];
+    try {
+        wasm.wasm_generate_key(retptr, ptr0, len0);
+        const mem = getUint32Memory();
+        const rustptr = mem[retptr / 4];
+        const rustlen = mem[retptr / 4 + 1];
 
-    const realRet = getStringFromWasm(rustptr, rustlen).slice();
-    wasm.__wbindgen_free(rustptr, rustlen * 1);
-    return realRet;
+        const realRet = getStringFromWasm(rustptr, rustlen).slice();
+        wasm.__wbindgen_free(rustptr, rustlen * 1);
+        return realRet;
+
+
+    } finally {
+        wasm.__wbindgen_free(ptr0, len0 * 1);
+
+    }
 
 };
 

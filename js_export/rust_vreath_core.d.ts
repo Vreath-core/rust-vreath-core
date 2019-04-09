@@ -5,9 +5,10 @@
 */
 export function wasm_get_sha256(data: Uint8Array): string;
 /**
+* @param {Uint8Array} random 
 * @returns {string} 
 */
-export function wasm_generate_key(): string;
+export function wasm_generate_key(random: Uint8Array): string;
 /**
 * @param {Uint8Array} private_key 
 * @returns {string} 
