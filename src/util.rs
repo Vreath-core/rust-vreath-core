@@ -13,12 +13,7 @@ pub fn hex2vec(hex: String) -> Vec<u8> {
 pub fn vec2hex(vec: Vec<u8>) -> String {
     vec.into_iter()
        .map(|num|{
-                if num<=15 {
-                        "0".to_string()+&format!("{:x}",num)
-                }
-                else{
-                        format!("{:x}",num)
-                }
+                format!("{:02x}",num)
         })
        .fold("".to_string(),|sum,st| sum+&st)
 }

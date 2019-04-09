@@ -107,7 +107,7 @@ pub fn wasm_get_sha256(data:&[u8])->String{
 }
 
 #[wasm_bindgen]
-pub fn wasm_generate_key(random:&[u8;32])->String{
+pub fn wasm_generate_key(random:&[u8])->String{
     let secret = key::SecretKey::from_slice(random).unwrap();
     let mut return_slice:[u8;32] = [0;32];
     (0..32).for_each(|i|{
