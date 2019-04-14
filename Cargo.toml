@@ -5,11 +5,7 @@ authors = ["Sora Suegami"]
 edition = "2018"
 
 [dependencies]
-wasm-bindgen = { version="0.2" }
 rand = {version = "0.6.5", features = ["nightly"]}
 hex = "0.3.2"
-secp256k1 = { version = "0.12.2", features = ["fuzztarget"]}
+secp256k1 = { version = "0.12.2"}
 sha2 = { version = "0.8.0"}
-
-[lib]
-crate-type = ["cdylib"]

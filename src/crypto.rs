@@ -3,11 +3,6 @@ use secp256k1::{Secp256k1,key,Signature,RecoverableSignature,RecoveryId,Message}
 use secp256k1::ecdh::SharedSecret;
 use sha2::{Sha256,Digest};
 
-use super::util;
-
-extern crate wasm_bindgen;
-use wasm_bindgen::prelude::*;
-
 pub fn get_sha256(data:&[u8])->[u8;32]{
     let mut hasher:Sha256 = Digest::new();
     hasher.input(&data);
@@ -91,12 +86,13 @@ pub fn verify_sign(data:&[u8],sign:&[u8],public_key:&[u8])->bool{
         Err(e)=>false
     }
 }
-
+/*
 //for wasm
 #[wasm_bindgen]
-pub fn wasm_get_sha256(data:&[u8])->String{
+pub fn wasm_get_sha256(data:String)->String{
+    let vec_data = util::hex2vec(data);
     let mut hasher:Sha256 = Digest::new();
-    hasher.input(&data);
+    hasher.input(&vec_data[..]);
     let mut array:[u8;32] = [0;32];
     let result = hasher.result();
     let result_array = result.as_slice();
@@ -107,8 +103,8 @@ pub fn wasm_get_sha256(data:&[u8])->String{
 }
 
 #[wasm_bindgen]
-pub fn wasm_generate_key(random:&[u8])->String{
-    let secret = key::SecretKey::from_slice(random).unwrap();
+pub fn wasm_generate_key(random:String)->String{
+    let secret = key::SecretKey::from_slice(&util::hex2vec(random)[..]).unwrap();
     let mut return_slice:[u8;32] = [0;32];
     (0..32).for_each(|i|{
         return_slice[i] = secret[i];
@@ -117,17 +113,17 @@ pub fn wasm_generate_key(random:&[u8])->String{
 }
 
 #[wasm_bindgen]
-pub fn wasm_private2public(private_key:&[u8])->String{
+pub fn wasm_private2public(private_key:String)->String{
     let secp = Secp256k1::new();
-    let secret = key::SecretKey::from_slice(private_key).unwrap();
+    let secret = key::SecretKey::from_slice(&util::hex2vec(private_key)[..]).unwrap();
     let public = key::PublicKey::from_secret_key(&secp,&secret).serialize();
     util::vec2hex(public.to_vec())
 }
 
 #[wasm_bindgen]
-pub fn wasm_get_shared_secret(private_key:&[u8],public_key:&[u8])->String{
-    let secret = key::SecretKey::from_slice(private_key).unwrap();
-    let public = key::PublicKey::from_slice(public_key).unwrap();
+pub fn wasm_get_shared_secret(private_key:String,public_key:String)->String{
+    let secret = key::SecretKey::from_slice(&util::hex2vec(private_key)[..]).unwrap();
+    let public = key::PublicKey::from_slice(&util::hex2vec(public_key)[..]).unwrap();
     let shared_secret = SharedSecret::new(&public,&secret);
     let mut return_slice:[u8;32] = [0;32];
     (0..32).for_each(|i|{
@@ -135,7 +131,7 @@ pub fn wasm_get_shared_secret(private_key:&[u8],public_key:&[u8])->String{
     });
     util::vec2hex(return_slice.to_vec())
 }
-/*
+
 #[wasm_bindgen]
 pub fn encrypt(data:&Vec<u8>,secret:&[u8;32])->(Vec<u8>,Vec<u8>){
     let key = secretbox::xsalsa20poly1305::Key::from_slice(secret).unwrap();
@@ -153,34 +149,36 @@ pub fn decrypt(ciphertext:&Vec<u8>,nonce:&Vec<u8>,secret:&[u8;32])->Result<Vec<u
 }*/
 
 //return (hex of recoverid)_(hex of signature)
+/*
 #[wasm_bindgen]
-pub fn wasm_recoverable_sign(private_key:&[u8],data:&[u8])->String{
+pub fn wasm_recoverable_sign(private_key:String,data:String)->String{
     let secp = Secp256k1::new();
-    let secret = key::SecretKey::from_slice(private_key).unwrap();
-    let message = Message::from_slice(&data).unwrap();
+    let secret = key::SecretKey::from_slice(&util::hex2vec(private_key)[..]).unwrap();
+    let message = Message::from_slice(&util::hex2vec(data)[..]).unwrap();
     let sign = secp.sign_recoverable(&message,&secret);
+    println!("{:?}",sign);
     let (recover_id,sign_array) = sign.serialize_compact();
     format!("{:x}",recover_id.to_i32())+"_"+&util::vec2hex(sign_array.to_vec())
 }
 
 #[wasm_bindgen]
-pub fn wasm_recover_public_key(data:&[u8],sign:&[u8],recover_id:i32)->String{
+pub fn wasm_recover_public_key(data:String,sign:String,recover_id:i32)->String{
     let secp = Secp256k1::new();
     let rid = RecoveryId::from_i32(recover_id).unwrap();
-    let rec = RecoverableSignature::from_compact(sign, rid).unwrap();
-    let key = secp.recover(&Message::from_slice(data).unwrap(),&rec).unwrap();
+    let rec = RecoverableSignature::from_compact(&util::hex2vec(sign)[..], rid).unwrap();
+    let key = secp.recover(&Message::from_slice(&util::hex2vec(data)[..]).unwrap(),&rec).unwrap();
     util::vec2hex(key.serialize().to_vec())
 }
 
 #[wasm_bindgen]
-pub fn wasm_verify_sign(data:&[u8],sign:&[u8],public_key:&[u8])->bool{
+pub fn wasm_verify_sign(data:String,sign:String,public_key:String)->bool{
     let secp = Secp256k1::new();
-    let message = Message::from_slice(&data).unwrap();
-    let sign = Signature::from_compact(&sign).unwrap();
-    let public = key::PublicKey::from_slice(&public_key).unwrap();
+    let message = Message::from_slice(&util::hex2vec(data)[..]).unwrap();
+    let sign = Signature::from_compact(&util::hex2vec(sign)[..]).unwrap();
+    let public = key::PublicKey::from_slice(&util::hex2vec(public_key)[..]).unwrap();
     let verify = secp.verify(&message,&sign,&public);
     match verify{
         Ok(verify)=>true,
         Err(e)=>false
     }
-}
+}*/
