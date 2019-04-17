@@ -31,7 +31,7 @@ pub fn private2public(private_key:&[u8;32])->[u8;33]{
 }
 
 
-pub fn get_shared_secret(private_key:&[u8;32],public_key:&[u8;32])->[u8;32]{
+pub fn get_shared_secret(private_key:&[u8;32],public_key:&[u8])->[u8;32]{
     let secret = key::SecretKey::from_slice(private_key).unwrap();
     let public = key::PublicKey::from_slice(public_key).unwrap();
     let shared_secret = SharedSecret::new(&public,&secret);
