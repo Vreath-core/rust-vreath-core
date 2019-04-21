@@ -3,6 +3,9 @@ use secp256k1::{Secp256k1,key,Signature,RecoverableSignature,RecoveryId,Message}
 use secp256k1::ecdh::SharedSecret;
 use sha2::{Sha256,Digest};
 
+extern crate rand;
+use self::rand::Rng;
+
 pub fn get_sha256(data:&[u8])->[u8;32]{
     let mut hasher:Sha256 = Digest::new();
     hasher.input(&data);
@@ -10,18 +13,20 @@ pub fn get_sha256(data:&[u8])->[u8;32]{
     let result = hasher.result();
     let result_array = result.as_slice();
     (0..32).for_each(|i|{
-        array[i] = result_array[i].clone();
+        array[i] = result_array[i]
     });
-    array.clone()
+    array
 }
 
-pub fn generate_key(random:&[u8;32])->[u8;32]{
-    let secret = key::SecretKey::from_slice(random).unwrap();
+pub fn generate_key()->[u8;32]{
+    let mut rng = rand::thread_rng();
+    let random:[u8;32] = rng.gen();
+    let secret = key::SecretKey::from_slice(&random).unwrap();
     let mut return_slice:[u8;32] = [0;32];
     (0..32).for_each(|i|{
         return_slice[i] = secret[i];
     });
-    return_slice.clone()
+    return_slice
 }
 
 pub fn private2public(private_key:&[u8;32])->[u8;33]{
@@ -31,7 +36,7 @@ pub fn private2public(private_key:&[u8;32])->[u8;33]{
 }
 
 
-pub fn get_shared_secret(private_key:&[u8;32],public_key:&[u8])->[u8;32]{
+pub fn get_shared_secret(private_key:&[u8;32],public_key:&[u8;33])->[u8;32]{
     let secret = key::SecretKey::from_slice(private_key).unwrap();
     let public = key::PublicKey::from_slice(public_key).unwrap();
     let shared_secret = SharedSecret::new(&public,&secret);
@@ -39,24 +44,8 @@ pub fn get_shared_secret(private_key:&[u8;32],public_key:&[u8])->[u8;32]{
     (0..32).for_each(|i|{
         return_slice[i] = shared_secret[i];
     });
-    return_slice.clone()
+    return_slice
 }
-/*
-#[wasm_bindgen]
-pub fn encrypt(data:&Vec<u8>,secret:&[u8;32])->(Vec<u8>,Vec<u8>){
-    let key = secretbox::xsalsa20poly1305::Key::from_slice(secret).unwrap();
-    let nonce = secretbox::gen_nonce();
-    let ciphertext = secretbox::seal(&data[..], &nonce, &key);
-    (ciphertext,nonce.as_ref().clone().to_vec())
-}
-
-#[wasm_bindgen]
-pub fn decrypt(ciphertext:&Vec<u8>,nonce:&Vec<u8>,secret:&[u8;32])->Result<Vec<u8>,()>{
-    let key = secretbox::xsalsa20poly1305::Key::from_slice(secret).unwrap();
-    let nonce = secretbox::xsalsa20poly1305::Nonce::from_slice(&nonce[..]).unwrap();
-    let data = secretbox::open(&ciphertext[..],&nonce,&key);
-    data
-}*/
 
 pub fn recoverable_sign(private_key:&[u8;32],data:&[u8])->(i32,[u8;64]){
     let secp = Secp256k1::new();
@@ -67,7 +56,7 @@ pub fn recoverable_sign(private_key:&[u8;32],data:&[u8])->(i32,[u8;64]){
     (recover_id.to_i32(),sign_array)
 }
 
-pub fn recover_public_key(data:&[u8],sign:&[u8],recover_id:i32)->[u8;33]{
+pub fn recover_public_key(data:&[u8],sign:&[u8;64],recover_id:i32)->[u8;33]{
     let secp = Secp256k1::new();
     let rid = RecoveryId::from_i32(recover_id).unwrap();
     let rec = RecoverableSignature::from_compact(sign, rid).unwrap();
@@ -75,110 +64,40 @@ pub fn recover_public_key(data:&[u8],sign:&[u8],recover_id:i32)->[u8;33]{
     key.serialize()
 }
 
-pub fn verify_sign(data:&[u8],sign:&[u8],public_key:&[u8])->bool{
+pub fn verify_sign(data:&[u8],sign:&[u8;64],public_key:&[u8;33])->bool{
     let secp = Secp256k1::new();
     let message = Message::from_slice(&data).unwrap();
-    let sign = Signature::from_compact(&sign).unwrap();
-    let public = key::PublicKey::from_slice(&public_key).unwrap();
+    let sign = Signature::from_compact(&sign[..]).unwrap();
+    let public = key::PublicKey::from_slice(&public_key[..]).unwrap();
     let verify = secp.verify(&message,&sign,&public);
     match verify{
-        Ok(verify)=>true,
-        Err(e)=>false
+        Ok(_verify)=>true,
+        Err(_e)=>false
     }
 }
-/*
-//for wasm
-#[wasm_bindgen]
-pub fn wasm_get_sha256(data:String)->String{
-    let vec_data = util::hex2vec(data);
-    let mut hasher:Sha256 = Digest::new();
-    hasher.input(&vec_data[..]);
-    let mut array:[u8;32] = [0;32];
-    let result = hasher.result();
-    let result_array = result.as_slice();
-    (0..32).for_each(|i|{
-        array[i] = result_array[i].clone();
-    });
-    util::vec2hex(array.to_vec())
-}
 
-#[wasm_bindgen]
-pub fn wasm_generate_key(random:String)->String{
-    let secret = key::SecretKey::from_slice(&util::hex2vec(random)[..]).unwrap();
-    let mut return_slice:[u8;32] = [0;32];
-    (0..32).for_each(|i|{
-        return_slice[i] = secret[i];
-    });
-    util::vec2hex(return_slice.to_vec())
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    extern crate rand;
+    use self::rand::Rng;
 
-#[wasm_bindgen]
-pub fn wasm_private2public(private_key:String)->String{
-    let secp = Secp256k1::new();
-    let secret = key::SecretKey::from_slice(&util::hex2vec(private_key)[..]).unwrap();
-    let public = key::PublicKey::from_secret_key(&secp,&secret).serialize();
-    util::vec2hex(public.to_vec())
-}
-
-#[wasm_bindgen]
-pub fn wasm_get_shared_secret(private_key:String,public_key:String)->String{
-    let secret = key::SecretKey::from_slice(&util::hex2vec(private_key)[..]).unwrap();
-    let public = key::PublicKey::from_slice(&util::hex2vec(public_key)[..]).unwrap();
-    let shared_secret = SharedSecret::new(&public,&secret);
-    let mut return_slice:[u8;32] = [0;32];
-    (0..32).for_each(|i|{
-        return_slice[i] = shared_secret[i];
-    });
-    util::vec2hex(return_slice.to_vec())
-}
-
-#[wasm_bindgen]
-pub fn encrypt(data:&Vec<u8>,secret:&[u8;32])->(Vec<u8>,Vec<u8>){
-    let key = secretbox::xsalsa20poly1305::Key::from_slice(secret).unwrap();
-    let nonce = secretbox::gen_nonce();
-    let ciphertext = secretbox::seal(&data[..], &nonce, &key);
-    (ciphertext,nonce.as_ref().clone().to_vec())
-}
-
-#[wasm_bindgen]
-pub fn decrypt(ciphertext:&Vec<u8>,nonce:&Vec<u8>,secret:&[u8;32])->Result<Vec<u8>,()>{
-    let key = secretbox::xsalsa20poly1305::Key::from_slice(secret).unwrap();
-    let nonce = secretbox::xsalsa20poly1305::Nonce::from_slice(&nonce[..]).unwrap();
-    let data = secretbox::open(&ciphertext[..],&nonce,&key);
-    data
-}*/
-
-//return (hex of recoverid)_(hex of signature)
-/*
-#[wasm_bindgen]
-pub fn wasm_recoverable_sign(private_key:String,data:String)->String{
-    let secp = Secp256k1::new();
-    let secret = key::SecretKey::from_slice(&util::hex2vec(private_key)[..]).unwrap();
-    let message = Message::from_slice(&util::hex2vec(data)[..]).unwrap();
-    let sign = secp.sign_recoverable(&message,&secret);
-    println!("{:?}",sign);
-    let (recover_id,sign_array) = sign.serialize_compact();
-    format!("{:x}",recover_id.to_i32())+"_"+&util::vec2hex(sign_array.to_vec())
-}
-
-#[wasm_bindgen]
-pub fn wasm_recover_public_key(data:String,sign:String,recover_id:i32)->String{
-    let secp = Secp256k1::new();
-    let rid = RecoveryId::from_i32(recover_id).unwrap();
-    let rec = RecoverableSignature::from_compact(&util::hex2vec(sign)[..], rid).unwrap();
-    let key = secp.recover(&Message::from_slice(&util::hex2vec(data)[..]).unwrap(),&rec).unwrap();
-    util::vec2hex(key.serialize().to_vec())
-}
-
-#[wasm_bindgen]
-pub fn wasm_verify_sign(data:String,sign:String,public_key:String)->bool{
-    let secp = Secp256k1::new();
-    let message = Message::from_slice(&util::hex2vec(data)[..]).unwrap();
-    let sign = Signature::from_compact(&util::hex2vec(sign)[..]).unwrap();
-    let public = key::PublicKey::from_slice(&util::hex2vec(public_key)[..]).unwrap();
-    let verify = secp.verify(&message,&sign,&public);
-    match verify{
-        Ok(verify)=>true,
-        Err(e)=>false
+    #[test]
+    fn hash_test() {
+        let mut rng = rand::thread_rng();
+        let random:[u8;32] = rng.gen();
+        get_sha256(&random);
     }
-}*/
+
+    #[test]
+    fn sign_test() {
+        let private = generate_key();
+        let public =  private2public(&private.clone());
+        let mut rng = rand::thread_rng();
+        let data:[u8;32] = rng.gen();
+        let sign = recoverable_sign(&private,&data[..]);
+        let recovered = recover_public_key(&data[..],&sign.1,sign.0);
+        assert!(public.eq(&recovered[..]));
+        assert!(verify_sign(&data,&sign.1,&recovered));
+    }
+}

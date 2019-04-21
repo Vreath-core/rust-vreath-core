@@ -1,9 +1,3 @@
-pub fn num2vec(num:u64) -> Vec<u8> {
-    num.to_string().chars()
-        .map(|c| c.to_digit(10).unwrap() as u8)
-        .collect()
-}
-
 pub fn hex2vec(hex: String) -> Vec<u8> {
    let len = hex.len();
    (0..len).fold(Vec::new(),|mut res,i|{
@@ -22,4 +16,20 @@ pub fn vec2hex(vec: Vec<u8>) -> String {
                 format!("{:02x}",num)
         })
        .fold("".to_string(),|sum,st| sum+&st)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    extern crate rand;
+    use self::rand::Rng;
+
+    #[test]
+    fn hex_vec_test(){
+        let mut rng = rand::thread_rng();
+        let data:[u8;32] = rng.gen();
+        let hex = vec2hex(data.to_vec());
+        let vec = hex2vec(hex);
+        assert!(data.to_vec().eq(&vec));
+    }
 }
